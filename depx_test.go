@@ -127,6 +127,20 @@ func TestValidateAcceptsPointer(t *testing.T) {
 	})
 }
 
+func TestValidateRejectsUntypedNil(t *testing.T) {
+	Convey("Given an untyped nil", t, func() {
+		Convey("When validated", func() {
+			var d any
+			err := depx.Validate(d)
+
+			Convey("Then it reports the nil rather than panicking", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "nil")
+			})
+		})
+	})
+}
+
 func TestValidateRejectsNonStruct(t *testing.T) {
 	Convey("Given a non-struct value", t, func() {
 		Convey("When validated", func() {

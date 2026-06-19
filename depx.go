@@ -56,8 +56,18 @@ func (e *MissingError) Error() string {
 // struct or a non-nil pointer to one. A required field is an exported,
 // nil-able field not tagged `depx:"optional"` or `depx:"-"`; if any such
 // field is nil, Validate returns a [*MissingError] naming them all.
+//
+// Validate performs only reads and holds no state, so it is safe to call
+// concurrently.
+//
+// Note the standard Go caveat: an interface field holding a typed nil (e.g. a
+// (*T)(nil) stored in an interface) is not itself nil, so Validate treats it
+// as set. Wire concrete dependencies, not typed-nil interfaces.
 func Validate[T any](d T) error {
 	v := reflect.ValueOf(d)
+	if !v.IsValid() {
+		return fmt.Errorf("depx: Validate called on a nil value")
+	}
 	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return fmt.Errorf("depx: Validate called on a nil %T", d)
